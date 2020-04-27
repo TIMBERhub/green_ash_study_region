@@ -64,6 +64,8 @@
 # ### copy/convert external data ###
 # ##################################
 	
+	# say('We will use watershed basin boundaries to define the study region. Basins are taken from shapefiles from the Comission on Environmental Cooperation (http://www.cec.org/tools-and-resources/map-files/watersheds).')
+	
 	# # watershed boundaries from CEC
 	# ws1 <- shapefile(paste0(drive, '/ecology/Watersheds (CEC)/NA_Watersheds_Level_I_Ocean_Drainage_Areas'))
 	# ws23 <- shapefile(paste0(drive, '/ecology/Watersheds (CEC)/NA_Watersheds_Level_II_and_III'))
@@ -127,7 +129,7 @@
 # ### retrieve occurrence data ###
 # ################################
 
-	# # Occurrence data is presumed to have been already downloaded (and possibly cleaned) using scripts in "enms" folder.
+	# # Occurrence data is presumed to have been already downloaded (and possibly cleaned) from BIEN Ver 4.1 using scripts in "enms" folder.
 
 	# load(paste0(drive, '/ecology/Drive/Research/ABC vs Biogeography/NSF_ABI_2018_2021/data_and_analyses/green_ash/enms/species_records/00_Fraxinus_pennsylvanica_bien_all_occurrences.rda'))
 	
@@ -140,7 +142,7 @@
 # say('### create spatial polygon of study extent ###')
 # say('##############################################')
 
-	# say('This subscript uses watershed boundaries to delineate a study region extent that covers the area of interest for projecting range dynamics of green ash from 21 Kybp to the present in eastern North America.')
+	# say('This code uses watershed boundaries to delineate a study region extent that covers the area of interest for projecting range dynamics of green ash from 21 Kybp to the present in eastern North America. The watersheds mainly encompass the portions east of the Rocky Mountain continental divide, but sub-basins are included/excluded to create a contiguous region without choke-points that encompasses the present distribution, relevant pollen deposits, and potential past refugia.')
 
 	# # watershed boundaries
 	# load('./watersheds_cec/watersheds_level_1.rda')
@@ -195,8 +197,8 @@
 	# # remove Akpotak Island
 	# demesne <- demesne[!(demesne@data$OBJECTID %in% c(1772)), ]
 
-	# # combine watershed-delineated study region with manually-drawn region that encompasses adjacent littorial area that was exposed during LGM
-	# littoral <- shapefile('formerly_exposed_land_from_lorenz_et_al_2016/manually_drawn_study_region_encompassing_continental_shelf')
+	# # combine watershed-delineated study region with manually-drawn region that encompasses adjacent littoral area that was exposed during LGM
+	# littoral <- shapefile('formerly_exposed_land_from_lorenz_et_al_2016/study_region_encompassing_continental_shelf_manually_drawn')
 	# demesne <- gUnaryUnion(demesne)
 	
 	# demesne <- gUnion(demesne, littoral)
@@ -306,16 +308,16 @@
 		
 	# dev.off()
 	
-	# shapefile(demesne, './study_region_mask_without_glaciers', overwrite=TRUE)
+	# dirCreate('./study_region_encompassing_continental_shelf_drawn_using_code')
+	# shapefile(demesne, './study_region_encompassing_continental_shelf_drawn_using_code/study_region_mask_without_glaciers', overwrite=TRUE)
 
 # say('#####################################################################################')
 # say('### mask Dalton et al 2020 ice sheet layers onto land mass from Lorenz et al 2016 ###')
 # say('#####################################################################################')	
 	
-	# say('This step will create rasters of the land mass of North America through time using
-	# climate layers from Lorenz et al 2016 Sci Data. We will overlay the ice sheet layers from
-	# Dalton et al 2020 QSR onto the layers to yield cell values ranging from 0 (no ice) to 1
-	# (complete ice cover).')
+	# say('This step will create rasters of the land mass of North America through time using climate layers from Lorenz et al 2016 Sci Data. We will overlay the ice sheet layers from Dalton et al 2020 QSR onto the layers to yield cell values ranging from 0 (no ice) to 1 (complete ice cover), with values between 0 and 1 representing proportion of the cell covered in ice.', post=2, breaks=80)
+	
+	# say('Note, we have to use either the climate layers from the CCSM or ECBilt global circulation models, as these are the only two projected back through time.', breaks=80)
 
 	# ### get rasters representing land from Lorenz et al
 
@@ -379,7 +381,7 @@
 		
 	# ### add "year 0" to Lorenz terrestrial
 	
-		# year0 <- lorenz[[nlayers(lorenz)]]
+		# year0 <- lorenz[[nlayers(lorenz)]] * 0
 		# lorenzInterp <- stack(lorenzInterp, year0)
 
 		# dirCreate('./glaciers/glaciers_dalton')
@@ -413,7 +415,7 @@ say('#############################')
 	### mask with study region polygon created above
 	################################################
 	
-	studyRegionPoly <- shapefile('./study_region_mask_without_glaciers')
+	studyRegionPoly <- shapefile('./study_region_encompassing_continental_shelf_drawn_using_code/study_region_mask_without_glaciers')
 	studyRegionPoly <- sp::spTransform(studyRegionPoly, getCRS('wgs84'))
 	
 	studyRegionRast <- rasterize(studyRegionPoly, dalton[[1]])
