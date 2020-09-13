@@ -337,7 +337,8 @@
 		# dev.off()
 		
 	# dirCreate('./study_region_spatial_polygons')
-	# shapefile(demesne, './study_region_spatial_polygons/study_region_mask_without_glaciers', overwrite=TRUE)
+	# demesneAlb <- sp::spTransform(demesne, getCRS('albersNA'))
+	# shapefile(demesneAlb, './study_region_spatial_polygons/study_region_mask_without_glaciers', overwrite=TRUE)
 
 # say('#####################################################################################')
 # say('### mask Dalton et al 2020 ice sheet layers onto land mass from Lorenz et al 2016 ###')
