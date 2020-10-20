@@ -4,6 +4,7 @@
 ### TO RUN:
 ### source('C:/Ecology/Drive/Research/ABC vs Biogeography/NSF_ABI_2018_2021/data_and_analyses/green_ash/study_region/defining_study_region.r')
 ### source('D:/Ecology/Drive/Research/ABC vs Biogeography/NSF_ABI_2018_2021/data_and_analyses/green_ash/study_region/defining_study_region.r')
+### source('E:/Ecology/Drive/Research/ABC vs Biogeography/NSF_ABI_2018_2021/data_and_analyses/green_ash/study_region/defining_study_region.r')
 
 ### DESCRIPTION
 ### This script delineates a geographic domain to be used for simulating the biogeographic history of green ash.  As per meetings on 2019-11-12 and 2019-11-19, we will demarcate the region as such:
@@ -20,13 +21,14 @@
 ### * Occurrence data for Fraxinus americana from BIEN Version 4.1
 ### * Locations of genetic data from Allan Strand sent to Adam in late 2019
 ### * Shapefiles representing ice sheet cover from ~21 Kybp to the present from Dalton et al. Quaternary Science Reviews 234:106223.
+### * Elevation and bathymetry data from ETOP (https://data.nodc.noaa.gov/cgi-bin/iso?id=gov.noaa.ngdc.mgg.dem:316). Using the "grid-registered" version because it's the authoritative version.
 
-### CONTENTS ###
+### CODE SECTION CONTENTS ###
 ### setup ###
 ### compile pollen and occurrence data for Fraxinus ###
 ### create spatial polygon encompassing study extent ###
 ### mask Dalton et al 2020 ice sheet layers onto land mass from Lorenz et al 2016 ###
-
+### generate elevation raster for study region ###
 
 #############
 ### setup ###
@@ -58,12 +60,14 @@
 	setCompilerOptions(suppressUndefined=TRUE)
 
 	# drive where study region is to be created
-	workDrive <- 'C:'
+	# workDrive <- 'C:'
 	# workDrive <- 'D:'
+	workDrive <- 'E:'
 	
 	# drive where external (others') data is stored
 	# extDrive <- 'C:'
-	extDrive <- 'D:'
+	# extDrive <- 'D:'
+	extDrive <- 'E:'
 	
 	setwd(paste0(workDrive, '/ecology/Drive/Research/ABC vs Biogeography/NSF_ABI_2018_2021/data_and_analyses/green_ash/study_region'))
 
@@ -423,237 +427,257 @@
 			
 		# sink()
 
-say('#######################################################')
-say('### generate study region raster stack through time ###')
-say('#######################################################')
+# say('#######################################################')
+# say('### generate study region raster stack through time ###')
+# say('#######################################################')
 
-	### interpolate Dalton ice sheet layer to every 30 yr
-	#####################################################
+	# ### interpolate Dalton ice sheet layer to every 30 yr
+	# #####################################################
 
-	dalton <- stack(paste0('./ice_sheet/glaciers_dalton/daltonGlaciers_on_lorenzLand.tif'))
-	daltonDates <- read.csv('./ice_sheet/glaciers_dalton/Dalton et al 2020 QSR Dates from Shapefile Names.csv')
+	# dalton <- stack(paste0('./ice_sheet/glaciers_dalton/daltonGlaciers_on_lorenzLand.tif'))
+	# daltonDates <- read.csv('./ice_sheet/glaciers_dalton/Dalton et al 2020 QSR Dates from Shapefile Names.csv')
 
-	calYearsFrom <- c(-1 * daltonDates$calKiloYear * 1000, 0)
-	calYearsTo <- seq(-21000, 0, by=30)
+	# calYearsFrom <- c(-1 * daltonDates$calKiloYear * 1000, 0)
+	# calYearsTo <- seq(-21000, 0, by=30)
 	
-	names(dalton) <- paste0('yr', abs(calYearsFrom), 'bp')
+	# names(dalton) <- paste0('yr', abs(calYearsFrom), 'bp')
 	
-	daltonInterp <- interpolateRasters(dalton, interpFrom=calYearsFrom, interpTo=calYearsTo, type=rastInterpFx)
-	names(daltonInterp) <- paste0('yr', abs(calYearsTo), 'bp')
+	# daltonInterp <- interpolateRasters(dalton, interpFrom=calYearsFrom, interpTo=calYearsTo, type=rastInterpFx)
+	# names(daltonInterp) <- paste0('yr', abs(calYearsTo), 'bp')
 
-	### mask with study region polygon created above
-	################################################
+	# ### mask with study region polygon created above
+	# ################################################
 	
-	studyRegionPoly <- shapefile('./study_region_spatial_polygons/study_region_mask_without_glaciers')
-	studyRegionPoly <- sp::spTransform(studyRegionPoly, getCRS('wgs84'))
+	# studyRegionPoly <- shapefile('./study_region_spatial_polygons/study_region_mask_without_glaciers')
+	# studyRegionPoly <- sp::spTransform(studyRegionPoly, getCRS('wgs84'))
 	
-	studyRegionRast <- rasterize(studyRegionPoly, dalton[[1]])
-	studyRegionRast <- studyRegionRast * 0 + 1
+	# studyRegionRast <- rasterize(studyRegionPoly, dalton[[1]])
+	# studyRegionRast <- studyRegionRast * 0 + 1
 	
-	daltonInterp <- daltonInterp * studyRegionRast
-	daltonInterp <- trim(daltonInterp, padding=1)
-	studyRegionRast <- trim(studyRegionRast, padding=1)
+	# daltonInterp <- daltonInterp * studyRegionRast
+	# daltonInterp <- trim(daltonInterp, padding=1)
+	# studyRegionRast <- trim(studyRegionRast, padding=1)
 
-	### project raster
-	##################
+	# ### project raster
+	# ##################
 	
-	daltonInterpEa <- projectRaster(daltonInterp, crs=getCRS('albersNA'))
+	# daltonInterpEa <- projectRaster(daltonInterp, crs=getCRS('albersNA'))
 
-	daltonInterpEa <- calc(daltonInterpEa, fun=function(x) ifelse(x > 1, 1, x))
-	daltonInterpEa <- calc(daltonInterpEa, fun=function(x) ifelse(x < 0, 0, x))
+	# daltonInterpEa <- calc(daltonInterpEa, fun=function(x) ifelse(x > 1, 1, x))
+	# daltonInterpEa <- calc(daltonInterpEa, fun=function(x) ifelse(x < 0, 0, x))
 	
-	### mask out Great Lakes if they were not covered by ice
-	########################################################
+	# ### mask out Great Lakes if they were not covered by ice
+	# ########################################################
 
-	usa <- getData('GADM', country='USA', level=2, path='C:/ecology/!Scratch')
-	can <- getData('GADM', country='CAN', level=2, path='C:/ecology/!Scratch')
+	# usa <- getData('GADM', country='USA', level=2, path='C:/ecology/!Scratch')
+	# can <- getData('GADM', country='CAN', level=2, path='C:/ecology/!Scratch')
 
-	nam2Sp <- rbind(can, usa)
+	# nam2Sp <- rbind(can, usa)
 
-	# get lakes for removal from other geographies... add small buffer because lake borders don't exactly align
-	lakesSp <- nam2Sp[nam2Sp$ENGTYPE_2 == 'Water body', ]
-	lakesSpEa <- sp::spTransform(lakesSp, getCRS('albersNA', TRUE))
-	lakesSpEa <- gBuffer(lakesSpEa, width=10)
-	lakesSpEa <- gUnaryUnion(lakesSpEa)
+	# # get lakes for removal from other geographies... add small buffer because lake borders don't exactly align
+	# lakesSp <- nam2Sp[nam2Sp$ENGTYPE_2 == 'Water body', ]
+	# lakesSpEa <- sp::spTransform(lakesSp, getCRS('albersNA', TRUE))
+	# lakesSpEa <- gBuffer(lakesSpEa, width=10)
+	# lakesSpEa <- gUnaryUnion(lakesSpEa)
 	
-	daltonInterpEaLakesMasked <- daltonInterpEa
+	# daltonInterpEaLakesMasked <- daltonInterpEa
 	
-	# remove cell if ice is <1 and >50% or more of cell is covered by a lake
-	for (countDate in seq_along(calYearsTo)) {
+	# # remove cell if ice is <1 and >50% or more of cell is covered by a lake
+	# for (countDate in seq_along(calYearsTo)) {
 	
-		calYearTo <- calYearsTo[countDate]
+		# calYearTo <- calYearsTo[countDate]
 
-		this <- daltonInterpEaLakesMasked[[countDate]]
+		# this <- daltonInterpEaLakesMasked[[countDate]]
 
-		lakesExtract <- extract(this, lakesSpEa, weights=TRUE, normalizeWeights=FALSE, cellnumber=TRUE)[[1]]
-		lakesExtract <- as.data.frame(lakesExtract)
+		# lakesExtract <- extract(this, lakesSpEa, weights=TRUE, normalizeWeights=FALSE, cellnumber=TRUE)[[1]]
+		# lakesExtract <- as.data.frame(lakesExtract)
 
-		# lake area --> NA when lake covers >50% of cell and ice < 1
-		thisValues <- getValues(this)
-		thisValues[lakesExtract$cell] <- ifelse(lakesExtract$value < 1 & lakesExtract$weight > 0.5, NA, lakesExtract$value)
+		# # lake area --> NA when lake covers >50% of cell and ice < 1
+		# thisValues <- getValues(this)
+		# thisValues[lakesExtract$cell] <- ifelse(lakesExtract$value < 1 & lakesExtract$weight > 0.5, NA, lakesExtract$value)
 	
-		this <- setValues(this, thisValues)
+		# this <- setValues(this, thisValues)
 	
-		daltonInterpEaLakesMasked[[countDate]] <- this
+		# daltonInterpEaLakesMasked[[countDate]] <- this
 	
-	}
+	# }
 	
-	### save!
-	#########
+	# ### save!
+	# #########
 	
-	daltonInterpEa <- trim(daltonInterpEa, padding=1)
-	daltonInterpEaLakesMasked <- trim(daltonInterpEaLakesMasked, padding=1)
+	# daltonInterpEa <- trim(daltonInterpEa, padding=1)
+	# daltonInterpEaLakesMasked <- trim(daltonInterpEaLakesMasked, padding=1)
 	
-	dirCreate('./!study_region_raster_masks')
-	names(daltonInterpEa) <- paste0('yr', abs(calYearsTo), 'bp')	
-	names(daltonInterpEaLakesMasked) <- paste0('yr', abs(calYearsTo), 'bp')	
+	# dirCreate('./!study_region_raster_masks')
+	# names(daltonInterpEa) <- paste0('yr', abs(calYearsTo), 'bp')	
+	# names(daltonInterpEaLakesMasked) <- paste0('yr', abs(calYearsTo), 'bp')	
 
-	writeRaster(daltonInterpEa, paste0('./!study_region_raster_masks/study_region_daltonIceMask_noLakes_', rastInterpFx, 'IceSheetInterpolation'))
-	writeRaster(daltonInterpEaLakesMasked, paste0('./!study_region_raster_masks/study_region_daltonIceMask_lakesMasked_', rastInterpFx, 'IceSheetInterpolation'))
+	# writeRaster(daltonInterpEa, paste0('./!study_region_raster_masks/study_region_daltonIceMask_noLakes_', rastInterpFx, 'IceSheetInterpolation'))
+	# writeRaster(daltonInterpEaLakesMasked, paste0('./!study_region_raster_masks/study_region_daltonIceMask_lakesMasked_', rastInterpFx, 'IceSheetInterpolation'))
 	
-	sink('./!study_region_raster_masks/README.txt', split=TRUE)
+	# sink('./!study_region_raster_masks/README.txt', split=TRUE)
 	
-		say('study_region_raster_masks')
-		say(date())
-		say('')
-		say('The files in this folder contain raster stacks that represent the exposed land and ice sheet cover of the study region for the green ash study. Values in the rasters are:', breaks=80)
-		say('* 0: Land.')
-		say('* 1: Completely ice.')
-		say('* between 0 and 1: Proportion of cell covered by ice.')
-		say('* NA: Either land that is outside the study region or water.')
-		say('')
-		say('The "topmost" layer (layer #1) in the stack represents the study region 21 Kybp, and the "bottommost" layer (layer #701) represents the study region at 0 ybp.')
-		say('')
-		say('Raster stacks represent either: a scenario with Great Lakes represented by NA cells if a cell was covered by more than 50% lake; or a scenario assuming the Lakes are entirely land. A few other inland cells are NA.  These are carryover from the original rasters from Lorenz et al. 2016 Scientific data.', breaks=80)
-		say('')
-		say('The interpolation method refers to the manner in which the cover of ice in cells was "smoothed" from the intervals at which ice cover was provided by Dalton et al. 2020 QSR to 30-yr intervals.', breaks=80)
-		say('')
-		say('The rasters are in Albers equal-area projection for North America.')
+		# say('study_region_raster_masks')
+		# say(date())
+		# say('')
+		# say('The files in this folder contain raster stacks that represent the exposed land and ice sheet cover of the study region for the green ash study. Values in the rasters are:', breaks=80)
+		# say('* 0: Land.')
+		# say('* 1: Completely ice.')
+		# say('* between 0 and 1: Proportion of cell covered by ice.')
+		# say('* NA: Either land that is outside the study region or water.')
+		# say('')
+		# say('The "topmost" layer (layer #1) in the stack represents the study region 21 Kybp, and the "bottommost" layer (layer #701) represents the study region at 0 ybp.')
+		# say('')
+		# say('Raster stacks represent either: a scenario with Great Lakes represented by NA cells if a cell was covered by more than 50% lake; or a scenario assuming the Lakes are entirely land. A few other inland cells are NA.  These are carryover from the original rasters from Lorenz et al. 2016 Scientific data.', breaks=80)
+		# say('')
+		# say('The interpolation method refers to the manner in which the cover of ice in cells was "smoothed" from the intervals at which ice cover was provided by Dalton et al. 2020 QSR to 30-yr intervals.', breaks=80)
+		# say('')
+		# say('The rasters are in Albers equal-area projection for North America.')
 	
-	sink()
+	# sink()
 	
-	### plot
-	########
+	# ### plot
+	# ########
 
-	# political boundaries from GADM
-	can <- getData('GADM', country='CAN', level=1, path='C:/ecology/!Scratch')
-	usa <- getData('GADM', country='USA', level=1, path='C:/ecology/!Scratch')
-	mex <- getData('GADM', country='MEX', level=1, path='C:/ecology/!Scratch')
-	cub <- getData('GADM', country='CUB', level=1, path='C:/ecology/!Scratch')
-	dom <- getData('GADM', country='DOM', level=1, path='C:/ecology/!Scratch')
-	hti <- getData('GADM', country='HTI', level=1, path='C:/ecology/!Scratch')
-	bah <- getData('GADM', country='BHS', level=1, path='C:/ecology/!Scratch')
-	jam <- getData('GADM', country='JAM', level=1, path='C:/ecology/!Scratch')
+	# # political boundaries from GADM
+	# can <- getData('GADM', country='CAN', level=1, path='C:/ecology/!Scratch')
+	# usa <- getData('GADM', country='USA', level=1, path='C:/ecology/!Scratch')
+	# mex <- getData('GADM', country='MEX', level=1, path='C:/ecology/!Scratch')
+	# cub <- getData('GADM', country='CUB', level=1, path='C:/ecology/!Scratch')
+	# dom <- getData('GADM', country='DOM', level=1, path='C:/ecology/!Scratch')
+	# hti <- getData('GADM', country='HTI', level=1, path='C:/ecology/!Scratch')
+	# bah <- getData('GADM', country='BHS', level=1, path='C:/ecology/!Scratch')
+	# jam <- getData('GADM', country='JAM', level=1, path='C:/ecology/!Scratch')
 	
-	nam <- rbind(can, usa, mex, cub, dom, hti, bah)
-	nam <- sp::spTransform(nam, getCRS('albersNA', TRUE))
+	# nam <- rbind(can, usa, mex, cub, dom, hti, bah)
+	# nam <- sp::spTransform(nam, getCRS('albersNA', TRUE))
 	
-	studyRegionRast <- projectRaster(studyRegionRast, crs=getCRS('albersNA'))
-	studyRegionRast <- trim(studyRegionRast, padding=1)
+	# studyRegionRast <- projectRaster(studyRegionRast, crs=getCRS('albersNA'))
+	# studyRegionRast <- trim(studyRegionRast, padding=1)
 	
-	ext <- extent(studyRegionRast)
-	ext <- as(ext, 'SpatialPolygons')
-	projection(ext) <- getCRS('albersNA')
+	# ext <- extent(studyRegionRast)
+	# ext <- as(ext, 'SpatialPolygons')
+	# projection(ext) <- getCRS('albersNA')
 	
-	breaks <- seq(0, 1, by=0.1)
-	cols <- scales::alpha('cornflowerblue', seq(0, 1, length.out=length(breaks) - 1))
+	# breaks <- seq(0, 1, by=0.1)
+	# cols <- scales::alpha('cornflowerblue', seq(0, 1, length.out=length(breaks) - 1))
 
-	### plot one image per generation (30 yr)
-	#########################################
+	# ### plot one image per generation (30 yr)
+	# #########################################
 	
-	daltonDates <- -1000 * daltonDates$calKiloYear
+	# daltonDates <- -1000 * daltonDates$calKiloYear
 	
-	dirCreate(paste0('./study_region_images/', rastInterpFx, '_ice_sheet_interpolation'))
-	for (countYear in seq_along(calYearsTo)) {
+	# dirCreate(paste0('./study_region_images/', rastInterpFx, '_ice_sheet_interpolation'))
+	# for (countYear in seq_along(calYearsTo)) {
 
-		calYearTo <- calYearsTo[countYear]
-		say('Plotting ', calYearTo, '...')
+		# calYearTo <- calYearsTo[countYear]
+		# say('Plotting ', calYearTo, '...')
 
-		png(paste0('./study_region_images/', rastInterpFx, '_ice_sheet_interpolation/study_region_', omnibus::prefix(21000 + calYearTo, 5), 'ybp_after_21000_ybp.png'), width=1000, height=750, res=100)
+		# png(paste0('./study_region_images/', rastInterpFx, '_ice_sheet_interpolation/study_region_', omnibus::prefix(21000 + calYearTo, 5), 'ybp_after_21000_ybp.png'), width=1000, height=750, res=100)
 		
-			par(oma=c(0, 0, 0, 0), mar=rep(0.5, 4))
-			plot(ext, ann=FALSE, border=NA, xpd=NA)
-			plot(nam, border=NA, col='gray90', add=TRUE)
-			thisStudyRegion <- studyRegionRast * daltonInterpEa[[countYear]] * 0 + 1
-			plot(thisStudyRegion, col='gray70', ann=FALSE, legend=FALSE, add=TRUE)
-			plot(nam, border='black', add=TRUE)
-			plot(daltonInterpEa[[countYear]], legend=FALSE, col=cols, breaks=breaks, add=TRUE)
+			# par(oma=c(0, 0, 0, 0), mar=rep(0.5, 4))
+			# plot(ext, ann=FALSE, border=NA, xpd=NA)
+			# plot(nam, border=NA, col='gray90', add=TRUE)
+			# thisStudyRegion <- studyRegionRast * daltonInterpEa[[countYear]] * 0 + 1
+			# plot(thisStudyRegion, col='gray70', ann=FALSE, legend=FALSE, add=TRUE)
+			# plot(nam, border='black', add=TRUE)
+			# plot(daltonInterpEa[[countYear]], legend=FALSE, col=cols, breaks=breaks, add=TRUE)
 	
-			entirelyIce <- calc(daltonInterpEa[[countYear]], fun=function(x) ifelse(x == 1, 1, NA))
-			plot(entirelyIce, legend=FALSE, col='blue4', add=TRUE)
+			# entirelyIce <- calc(daltonInterpEa[[countYear]], fun=function(x) ifelse(x == 1, 1, NA))
+			# plot(entirelyIce, legend=FALSE, col='blue4', add=TRUE)
 			
-			# dalton shapefile overlay.. adding the two that are temporally closest to the given date
-			daltonFrom <- daltonDates[calYearTo >= daltonDates]
-			daltonFrom <- daltonFrom[length(daltonFrom)]
-			daltonFrom <- sprintf('%02.2f', abs(daltonFrom / 1000))
+			# # dalton shapefile overlay.. adding the two that are temporally closest to the given date
+			# daltonFrom <- daltonDates[calYearTo >= daltonDates]
+			# daltonFrom <- daltonFrom[length(daltonFrom)]
+			# daltonFrom <- sprintf('%02.2f', abs(daltonFrom / 1000))
 
-			load(paste0('C:/Ecology/Drive/Data/North American Ice Sheet Dalton et al 2020 Quaternary Science Reviews/RDA Files/daltonEtAl2020_', daltonFrom, '_kiloCalYBP.rda'))
-			daltonIceSpEa <- sp::spTransform(daltonIce, getCRS('albersNA', TRUE))
-			# plot(daltonIceSpEa, border='darkgoldenrod3', add=TRUE, lwd=2)
-			plot(daltonIceSpEa, border='cyan', add=TRUE, lwd=2)
+			# load(paste0('C:/Ecology/Drive/Data/North American Ice Sheet Dalton et al 2020 Quaternary Science Reviews/RDA Files/daltonEtAl2020_', daltonFrom, '_kiloCalYBP.rda'))
+			# daltonIceSpEa <- sp::spTransform(daltonIce, getCRS('albersNA', TRUE))
+			# # plot(daltonIceSpEa, border='darkgoldenrod3', add=TRUE, lwd=2)
+			# plot(daltonIceSpEa, border='cyan', add=TRUE, lwd=2)
 
-			daltonTo <- daltonDates[calYearTo <= daltonDates]
+			# daltonTo <- daltonDates[calYearTo <= daltonDates]
 			
-			if (length(daltonTo) == 0) {
-				daltonTo <- NULL
-			} else {
-				daltonTo <- daltonTo[1]
-				daltonTo <- sprintf('%02.2f', abs(daltonTo / 1000))
-				load(paste0('C:/Ecology/Drive/Data/North American Ice Sheet Dalton et al 2020 Quaternary Science Reviews/RDA Files/daltonEtAl2020_', daltonTo, '_kiloCalYBP.rda'))
-				daltonIceSpEa <- sp::spTransform(daltonIce, getCRS('albersNA', TRUE))
-				# plot(daltonIceSpEa, border='darkgoldenrod3', add=TRUE, lwd=2, lty='dotted')
-				plot(daltonIceSpEa, border='cyan', add=TRUE, lwd=2, lty='dotted')
-			}
+			# if (length(daltonTo) == 0) {
+				# daltonTo <- NULL
+			# } else {
+				# daltonTo <- daltonTo[1]
+				# daltonTo <- sprintf('%02.2f', abs(daltonTo / 1000))
+				# load(paste0('C:/Ecology/Drive/Data/North American Ice Sheet Dalton et al 2020 Quaternary Science Reviews/RDA Files/daltonEtAl2020_', daltonTo, '_kiloCalYBP.rda'))
+				# daltonIceSpEa <- sp::spTransform(daltonIce, getCRS('albersNA', TRUE))
+				# # plot(daltonIceSpEa, border='darkgoldenrod3', add=TRUE, lwd=2, lty='dotted')
+				# plot(daltonIceSpEa, border='cyan', add=TRUE, lwd=2, lty='dotted')
+			# }
 			
-			legend('bottomright', inset=c(0, 0.28), bty='n', cex=1,
-				title=paste(abs(calYearTo), 'YBP'),
-				legend=c(
-					'ice sheet = 100%',
-					'ice sheet < 100%',
-					'study region',
-					'Period-starting ice sheet',
-					'Period-ending ice sheet'
-				),
-				fill=c(
-					'blue4',
-					'cornflowerblue',
-					'gray70',
-					NA,
-					NA
-				),
-				border=c(
-					NA,
-					NA,
-					NA,
-					NA,
-					NA
-				),
-				col=c(
-					NA,
-					NA,
-					NA,
-					'cyan',
-					'cyan'
-				),
-				lwd=c(
-					NA,
-					NA,
-					NA,
-					2,
-					2
-				),
-				lty=c(
-					NA,
-					NA,
-					NA,
-					'solid',
-					'dotted'
-				)
-			)
+			# legend('bottomright', inset=c(0, 0.28), bty='n', cex=1,
+				# title=paste(abs(calYearTo), 'YBP'),
+				# legend=c(
+					# 'ice sheet = 100%',
+					# 'ice sheet < 100%',
+					# 'study region',
+					# 'Period-starting ice sheet',
+					# 'Period-ending ice sheet'
+				# ),
+				# fill=c(
+					# 'blue4',
+					# 'cornflowerblue',
+					# 'gray70',
+					# NA,
+					# NA
+				# ),
+				# border=c(
+					# NA,
+					# NA,
+					# NA,
+					# NA,
+					# NA
+				# ),
+				# col=c(
+					# NA,
+					# NA,
+					# NA,
+					# 'cyan',
+					# 'cyan'
+				# ),
+				# lwd=c(
+					# NA,
+					# NA,
+					# NA,
+					# 2,
+					# 2
+				# ),
+				# lty=c(
+					# NA,
+					# NA,
+					# NA,
+					# 'solid',
+					# 'dotted'
+				# )
+			# )
 			
-		dev.off()
+		# dev.off()
 		
-	}
+	# }
+
+# say('##################################################')
+# say('### generate elevation raster for study region ###')
+# say('##################################################')
+
+	# # elevation data from ETOP: https://data.nodc.noaa.gov/cgi-bin/iso?id=gov.noaa.ngdc.mgg.dem:316
+	# etop <- raster('E:/Ecology/Topography/ETOP/grid_registered/ETOPO1_Bed_g_geotiff.tif')
+	# projection(etop) <- getCRS('wgs84')
+	
+	# # study region polygon
+	# demesneAlb <- shapefile('./study_region_spatial_polygons/study_region_mask_without_glaciers')
+	# demesneWgs84 <- sp::spTransform(demesneAlb, getCRS('wgs84', TRUE))
+	
+	# studyRegionRasts <- brick('./!study_region_raster_masks/study_region_daltonIceMask_lakesMasked_linearIceSheetInterpolation.tif')
+	
+	# # resample elevation to study region resolution and projection
+	# etop <- crop(etop, demesneWgs84)
+	# etopAlb <- projectRaster(etop, studyRegionRasts)
+	
+	# writeRaster(etopAlb, './!study_region_raster_masks/study_region_elevationInMeters_fromEtop')
 	
 #################################	
 say('DONE!!!', deco='%', level=1)
