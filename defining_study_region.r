@@ -348,23 +348,23 @@
 # say('### mask Dalton et al 2020 ice sheet layers onto land mass from Lorenz et al 2016 ###')
 # say('#####################################################################################')	
 	
-	# say('This step will create rasters of the land mass of North America through time using climate layers from Lorenz et al 2016 Sci Data. We will overlay the ice sheet layers from Dalton et al 2020 QSR onto the layers to yield cell values ranging from 0 (no ice) to 1 (complete ice cover), with values between 0 and 1 representing proportion of the cell covered in ice.', post=2, breaks=80)
+	# say('This step will create rasters of the land mass of North America through time using climate layers from Lorenz et al 2016 Sci Data. We will overlay the ice sheet layers from Dalton et al 2020 QSR onto the layers to yield cell values ranging from 0 (no ice) to 1 (complete ice cover), with values between 0 and 1 representing proportion of the cell covered in ice. We will create one raster per time period in the time series provided by the Dalton ice cover data product.', post=2, breaks=80)
 	
 	# say('Note, we have to use either the climate layers from the CCSM or ECBilt global circulation models, as these are the only two projected back through time.', breaks=80)
 
 	# ### get rasters representing land from Lorenz et al
 
-		# lorenzDir <- 'D:/Ecology/Climate/Lorenz et al 2016 North America 21Kybp to 2100 CE/V2/ccsm3_22-0k_all_tifs/'
+		# lorenzDir <- paste0(extDrive, '/Ecology/Climate/Lorenz et al 2016 North America 21Kybp to 2100 CE/Version 2017-06-16/ccsm3_22-0k_all_tifs/')
 		
-		# lorenz <- raster(paste0(lorenzDir, '/22000BP/an_avg_ETR.tif'))
-		
-		# years <- seq(22000 - 500, 0, by=-500)
-		
+		# years <- seq(22000, 0, by=-500)
+
+		# if (exists('lorenz')) rm(lorenz)
 		# for (year in years) {
-			# lorenz <- stack(
-				# lorenz,
+			# lorenz <- if (exists('lorenz')) {
+				# stack(lorenz, raster(paste0(lorenzDir, '/', year, 'BP/an_avg_ETR.tif')))
+			# } else {
 				# raster(paste0(lorenzDir, '/', year, 'BP/an_avg_ETR.tif'))
-			# )
+			# }
 		# }
 		
 		# lorenz <- lorenz * 0 + 1
@@ -374,7 +374,7 @@
 	# ### get carbon and calendar years for each ice layer for Dalton et al ice sheet data
 	# # note that the calendar years are not exactly the same as listed on Table 1 in Dalton et al 2020
 		
-		# daltonYears <- read.csv('C:/Ecology/Drive/Data/North American Ice Sheet Dalton et al 2020 Quaternary Science Reviews/Dalton et al 2020 QSR Dates from Shapefile Names.csv')
+		# daltonYears <- read.csv(paste0(workDrive, '/Ecology/Drive/Data/North American Ice Sheet Dalton et al 2020 Quaternary Science Reviews/Dalton et al 2020 QSR Dates from Shapefile Names.csv'))
 
 	# ### interpolate land rasters to time periods matching Durant et al ice sheet representations
 
@@ -385,7 +385,7 @@
 	
 	# ### for each cell, assign a value from 0 to 1 indicating proportion covered by ice sheet
 	
-		# daltonDir <- 'C:/Ecology/Drive/Data/North American Ice Sheet Dalton et al 2020 Quaternary Science Reviews/RDA Files/'
+		# daltonDir <- paste0(workDrive, '/Ecology/Drive/Data/North American Ice Sheet Dalton et al 2020 Quaternary Science Reviews/RDA Files/')
 	
 		# for (countDalton in 1:nrow(daltonYears)) {
 
@@ -419,7 +419,7 @@
 
 		# dirCreate('./ice_sheet/glaciers_dalton')
 		# writeRaster(lorenzInterp, paste0('./ice_sheet/glaciers_dalton/daltonGlaciers_on_lorenzLand'))
-		# file.copy('C:/Ecology/Drive/Data/North American Ice Sheet Dalton et al 2020 Quaternary Science Reviews/Dalton et al 2020 QSR Dates from Shapefile Names.csv', to='C:/Ecology/Drive/Research/ABC vs Biogeography/NSF_ABI_2018_2021/data_and_analyses/green_ash/study_region/ice_sheet/glaciers_dalton/Dalton et al 2020 QSR Dates from Shapefile Names.csv')
+		# file.copy(paste0(workDrive, '/Ecology/Drive/Data/North American Ice Sheet Dalton et al 2020 Quaternary Science Reviews/Dalton et al 2020 QSR Dates from Shapefile Names.csv'), to=paste0(workDrive, '/Ecology/Drive/Research/ABC vs Biogeography/NSF_ABI_2018_2021/data_and_analyses/green_ash/study_region/ice_sheet/glaciers_dalton/Dalton et al 2020 QSR Dates from Shapefile Names.csv'))
 		
 		# sink(paste0('./ice_sheet/glaciers_dalton/README_', rastInterpFx, 'Interpolation.txt'), split=TRUE)
 		
@@ -427,9 +427,13 @@
 			
 		# sink()
 
-# say('#######################################################')
+# say('#######################################################', pre=2)
 # say('### generate study region raster stack through time ###')
-# say('#######################################################')
+# say('#######################################################', post=2)
+
+	# say('This section interpolates the land/ice rasters from the time periods provided by Dalton et al. to 30-yr time steps.', post=2, breaks=80)
+	
+	# say('In initial runs there was a problem with the overlaying of Dalton ice polygons onto rasters in cells adjacent to water bodies, especially for coastal cells along the northeast section of the study region. Since raster cells are rectangular, these cells occasionally had <100% ice cover even though the ice sheet polygon extended to the coast (and maybe slightly beyond). So, this script forces all cells that 1) are adjacent to an NA cell and have an ice cover of >0.5 to have an ice cover value of 1 (100% ice).', breaks=80, post=2)
 
 	# ### interpolate Dalton ice sheet layer to every 30 yr
 	# #####################################################
@@ -485,8 +489,6 @@
 	# # remove cell if ice is <1 and >50% or more of cell is covered by a lake
 	# for (countDate in seq_along(calYearsTo)) {
 	
-		# calYearTo <- calYearsTo[countDate]
-
 		# this <- daltonInterpEaLakesMasked[[countDate]]
 
 		# lakesExtract <- extract(this, lakesSpEa, weights=TRUE, normalizeWeights=FALSE, cellnumber=TRUE)[[1]]
@@ -497,11 +499,31 @@
 		# thisValues[lakesExtract$cell] <- ifelse(lakesExtract$value < 1 & lakesExtract$weight > 0.5, NA, lakesExtract$value)
 	
 		# this <- setValues(this, thisValues)
-	
+
 		# daltonInterpEaLakesMasked[[countDate]] <- this
 	
 	# }
 	
+	# ### force cells adjacent to water with >x% of ice cover to have complete ice cover
+	# ##################################################################################
+
+	# forceIce <- function(x) if (any(is.na(x) & x[5] %>na% 0.5)) { 1 } else { x[5] }
+	# w <- matrix(1, nc=3, nr=3)
+	# for (i in 1:nlayers(daltonInterpEaLakesMasked)) {
+	# for (i in 1) {
+		# daltonInterpEa[[i]] <- focal(daltonInterpEa[[i]], w=w, fun=forceIce)
+		# daltonInterpEaLakesMasked[[i]] <- focal(daltonInterpEaLakesMasked[[i]], w=w, fun=forceIce)
+	# }
+
+	# ### force cells complete surrounded by complete ice to be complete ice
+	# ######################################################################
+
+	# iceThreshold <- 0.99
+	# for (i in 1:nlayers(daltonInterpEaLakesMasked)) {
+		# daltonInterpEa[[i]] <- calc(daltonInterpEa[[i]], function(x) ifelse(x > iceThreshold, 1, x))
+		# daltonInterpEaLakesMasked[[i]] <- calc(daltonInterpEaLakesMasked[[i]], function(x) ifelse(x > iceThreshold, 1, x))
+	# }
+
 	# ### save!
 	# #########
 	
@@ -530,12 +552,16 @@
 		# say('')
 		# say('Raster stacks represent either: a scenario with Great Lakes represented by NA cells if a cell was covered by more than 50% lake; or a scenario assuming the Lakes are entirely land. A few other inland cells are NA.  These are carryover from the original rasters from Lorenz et al. 2016 Scientific data.', breaks=80)
 		# say('')
+		# say('')
+		# say('Cells that are adjacent to an NA cell and that have >50% ice cover have been forced to have 100% ice cover. Cells that are not NA and completely surrounded by ice are forced to be 100% ice.', breaks=80)
+		# say('')
+		# say('')
 		# say('The interpolation method refers to the manner in which the cover of ice in cells was "smoothed" from the intervals at which ice cover was provided by Dalton et al. 2020 QSR to 30-yr intervals.', breaks=80)
 		# say('')
 		# say('The rasters are in Albers equal-area projection for North America.')
 	
 	# sink()
-	
+
 	# ### plot
 	# ########
 
@@ -586,12 +612,12 @@
 			# entirelyIce <- calc(daltonInterpEa[[countYear]], fun=function(x) ifelse(x == 1, 1, NA))
 			# plot(entirelyIce, legend=FALSE, col='blue4', add=TRUE)
 			
-			# # dalton shapefile overlay.. adding the two that are temporally closest to the given date
+			# # dalton shapefile overlay... adding the two that are temporally closest to the given date
 			# daltonFrom <- daltonDates[calYearTo >= daltonDates]
 			# daltonFrom <- daltonFrom[length(daltonFrom)]
 			# daltonFrom <- sprintf('%02.2f', abs(daltonFrom / 1000))
 
-			# load(paste0('C:/Ecology/Drive/Data/North American Ice Sheet Dalton et al 2020 Quaternary Science Reviews/RDA Files/daltonEtAl2020_', daltonFrom, '_kiloCalYBP.rda'))
+			# load(paste0(extDrive, '/Ecology/Drive/Data/North American Ice Sheet Dalton et al 2020 Quaternary Science Reviews/RDA Files/daltonEtAl2020_', daltonFrom, '_kiloCalYBP.rda'))
 			# daltonIceSpEa <- sp::spTransform(daltonIce, getCRS('albersNA', TRUE))
 			# # plot(daltonIceSpEa, border='darkgoldenrod3', add=TRUE, lwd=2)
 			# plot(daltonIceSpEa, border='cyan', add=TRUE, lwd=2)
@@ -603,7 +629,7 @@
 			# } else {
 				# daltonTo <- daltonTo[1]
 				# daltonTo <- sprintf('%02.2f', abs(daltonTo / 1000))
-				# load(paste0('C:/Ecology/Drive/Data/North American Ice Sheet Dalton et al 2020 Quaternary Science Reviews/RDA Files/daltonEtAl2020_', daltonTo, '_kiloCalYBP.rda'))
+				# load(paste0(extDrive, '/Ecology/Drive/Data/North American Ice Sheet Dalton et al 2020 Quaternary Science Reviews/RDA Files/daltonEtAl2020_', daltonTo, '_kiloCalYBP.rda'))
 				# daltonIceSpEa <- sp::spTransform(daltonIce, getCRS('albersNA', TRUE))
 				# # plot(daltonIceSpEa, border='darkgoldenrod3', add=TRUE, lwd=2, lty='dotted')
 				# plot(daltonIceSpEa, border='cyan', add=TRUE, lwd=2, lty='dotted')
