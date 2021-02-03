@@ -1,5 +1,5 @@
  study_region_raster_masks
- Tue Apr 28 23:47:40 2020
+ Sun Jan 31 12:22:23 2021
  
  The files in this folder contain raster stacks that represent the exposed land a
  nd ice sheet cover of the study region for the green ash study. Values in the rasters are:
@@ -14,6 +14,12 @@
  lls if a cell was covered by more than 50% lake; or a scenario assuming the Lake
  s are entirely land. A few other inland cells are NA.  These are carryover from 
  the original rasters from Lorenz et al. 2016 Scientific data.
+ 
+ 
+ Cells that are adjacent to an NA cell and that have >50% ice cover have been for
+ ced to have 100% ice cover. Cells that are not NA and completely surrounded by i
+ ce are forced to be 100% ice.
+ 
  
  The interpolation method refers to the manner in which the cover of ice in cells
   was "smoothed" from the intervals at which ice cover was provided by Dalton et 
