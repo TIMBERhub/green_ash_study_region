@@ -29,6 +29,7 @@
 ### create spatial polygon encompassing study extent ###
 ### mask Dalton et al 2020 ice sheet layers onto land mass from Lorenz et al 2016 ###
 ### generate elevation raster for study region ###
+### calculate "biotic" velocity of exposed land as null model for real biotic velocity ###
 
 #############
 ### setup ###
@@ -704,6 +705,60 @@
 	# etopAlb <- projectRaster(etop, studyRegionRasts)
 	
 	# writeRaster(etopAlb, './!study_region_raster_masks/study_region_elevationInMeters_fromEtop')
+
+# say('##########################################################################################')
+# say('### calculate "biotic" velocity of exposed land as null model for real biotic velocity ###')
+# say('##########################################################################################')
+
+	# studyRegion <- stack('./!study_region_raster_masks/study_region_daltonIceMask_lakesMasked_linearIceSheetInterpolation.tif')
+	
+	# studyRegion <- 1 - studyRegion
+	
+	# bvSharedCells <- bioticVelocity(studyRegion, times=seq(-21000, 0, by=30), atTimes=seq(-21000, 0, by=990), metrics=c('centroid', 'nsCentroid', 'ewCentroid', 'nsQuants', 'summary'), quants=c(0.05, 0.95), onlyInSharedCells=TRUE, cores=2)
+	# bvAllCells <- bioticVelocity(studyRegion, times=seq(-21000, 0, by=30), atTimes=seq(-21000, 0, by=990), metrics=c('centroid', 'nsCentroid', 'ewCentroid', 'nsQuants', 'summary'), quants=c(0.05, 0.95), onlyInSharedCells=FALSE, cores=2)
+
+	# # save
+	# dirCreate('./biotic_velocity_of_land')
+	# write.csv(bvSharedCells './biotic_velocity_of_land/biotic_velocity_of_land_with_lakes_shared_cells_only.csv', row.names=FALSE)
+	# write.csv(bvAllCells './biotic_velocity_of_land/biotic_velocity_of_land_with_lakes_all_cells_only.csv', row.names=FALSE)
+
+	# ### plot
+	# midTimes <- bvSharedCells$timeTo + 990 / 2
+
+	# # centroid
+	# png('./biotic_velocity_of_land/biotic_velocity_of_land_with_lakes_centroid.png', width=1200, height=800)
+
+		# maxVel <- max(bvSharedCells$centroidVelocity, bvAllCells$centroidVelocity)
+
+		# par(cex.lab=1.6, cex.axis=1.4, cex.main=2)
+		# plot(midTimes, bvSharedCells$centroidVelocity, type='line', lwd=2, lty='dotted', col='blue', xlab='YBP', ylab='Velocity (m / yr)', ylim=c(0, maxVel), main='Centroid velocity of land')
+		# lines(midTimes, bvAllCells$centroidVelocity, lwd=2, lty='solid')
+		# legend('topright', inset=0.01, legend=c('all cells', 'shared cells'), col=c('black', 'blue'), lty=c('solid', 'dotted'), lwd=2, cex=1.4)
+	# dev.off()
+	
+	# # northern 95th quantile
+	# png('./biotic_velocity_of_land/biotic_velocity_of_land_with_lakes_95th_quantile.png', width=1200, height=800)
+
+		# minVel <- min(bvSharedCells$nsQuantVelocity_quant0p95, bvAllCells$nsQuantVelocity_quant0p95)
+		# maxVel <- max(bvSharedCells$nsQuantVelocity_quant0p95, bvAllCells$nsQuantVelocity_quant0p95)
+
+		# par(cex.lab=1.6, cex.axis=1.4, cex.main=2)
+		# plot(midTimes, bvSharedCells$nsQuantVelocity_quant0p95, type='line', lwd=2, lty='dotted', col='blue', xlab='YBP', ylab='Velocity (m / yr)', ylim=c(minVel, maxVel), main='Velocity of 95th quantile of land (northern "range" limit)')
+		# lines(midTimes, bvAllCells$nsQuantVelocity_quant0p95, lwd=2, lty='solid')
+		# legend('topright', inset=0.01, legend=c('all cells', 'shared cells'), col=c('black', 'blue'), lty=c('solid', 'dotted'), lwd=2, cex=1.4)
+	# dev.off()
+	
+	# # southern 5th quantile
+	# png('./biotic_velocity_of_land/biotic_velocity_of_land_with_lakes_5th_quantile.png', width=1200, height=800)
+
+		# minVel <- min(bvSharedCells$nsQuantVelocity_quant0p05, bvAllCells$nsQuantVelocity_quant0p05)
+		# maxVel <- max(bvSharedCells$nsQuantVelocity_quant0p05, bvAllCells$nsQuantVelocity_quant0p05)
+
+		# par(cex.lab=1.6, cex.axis=1.4, cex.main=2)
+		# plot(midTimes, bvSharedCells$nsQuantVelocity_quant0p05, type='line', lwd=2, lty='dotted', col='blue', xlab='YBP', ylab='Velocity (m / yr)', ylim=c(minVel, maxVel), main='Velocity of 5th quantile of land (southern "range" limit)')
+		# lines(midTimes, bvAllCells$nsQuantVelocity_quant0p05, lwd=2, lty='solid')
+		# legend('topright', inset=0.01, legend=c('all cells', 'shared cells'), col=c('black', 'blue'), lty=c('solid', 'dotted'), lwd=2, cex=1.4)
+	# dev.off()
 	
 #################################	
 say('DONE!!!', deco='%', level=1)
