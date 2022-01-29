@@ -2,9 +2,9 @@
 ### Adam B. Smith | Missouri Botanical Garden | 2019-12
 ###
 ### TO RUN:
-### source('C:/Ecology/Drive/Research/ABC vs Biogeography/NSF_ABI_2018_2021/data_and_analyses/green_ash/study_region/defining_study_region.r')
-### source('D:/Ecology/Drive/Research/ABC vs Biogeography/NSF_ABI_2018_2021/data_and_analyses/green_ash/study_region/defining_study_region.r')
-### source('E:/Ecology/Drive/Research/ABC vs Biogeography/NSF_ABI_2018_2021/data_and_analyses/green_ash/study_region/defining_study_region.r')
+### source('C:/Ecology/Drive/Research Active/ABC vs Biogeography/NSF_ABI_2018_2021/data_and_analyses/green_ash/study_region/defining_study_region.r')
+### source('D:/Ecology/Drive/Research Active/ABC vs Biogeography/NSF_ABI_2018_2021/data_and_analyses/green_ash/study_region/defining_study_region.r')
+### source('E:/Ecology/Drive/Research Active/ABC vs Biogeography/NSF_ABI_2018_2021/data_and_analyses/green_ash/study_region/defining_study_region.r')
 
 ### DESCRIPTION
 ### This script delineates a geographic domain to be used for simulating the biogeographic history of green ash.  As per meetings on 2019-11-12 and 2019-11-19, we will demarcate the region as such:
@@ -70,7 +70,7 @@
 	# extDrive <- 'D:'
 	extDrive <- 'E:'
 	
-	setwd(paste0(workDrive, '/ecology/Drive/Research/ABC vs Biogeography/NSF_ABI_2018_2021/data_and_analyses/green_ash/study_region'))
+	setwd(paste0(workDrive, '/ecology/Drive/Research Active/ABC vs Biogeography/NSF_ABI_2018_2021/data_and_analyses/green_ash/study_region'))
 
 	# raster interpolation settings... see enmSdm::interpolateRasters()
 	rastInterpFx <- 'linear' # decided on using this because splines create apparent "reversals" of ice melt
@@ -714,52 +714,108 @@
 	
 	# studyRegion <- 1 - studyRegion
 	
-	# bvSharedCells <- bioticVelocity(studyRegion, times=seq(-21000, 0, by=30), atTimes=seq(-21000, 0, by=990), metrics=c('centroid', 'nsCentroid', 'ewCentroid', 'nsQuants', 'summary'), quants=c(0.05, 0.95), onlyInSharedCells=TRUE, cores=2)
-	# bvAllCells <- bioticVelocity(studyRegion, times=seq(-21000, 0, by=30), atTimes=seq(-21000, 0, by=990), metrics=c('centroid', 'nsCentroid', 'ewCentroid', 'nsQuants', 'summary'), quants=c(0.05, 0.95), onlyInSharedCells=FALSE, cores=2)
+	# bvSharedCells990yr <- bioticVelocity(studyRegion, times=seq(-21000, 0, by=30), atTimes=seq(-21000, 0, by=990), metrics=c('centroid', 'nsCentroid', 'ewCentroid', 'nsQuants', 'summary'), quants=c(0.05, 0.95), onlyInSharedCells=TRUE, cores=2)
+	# bvAllCells990yr <- bioticVelocity(studyRegion, times=seq(-21000, 0, by=30), atTimes=seq(-21000, 0, by=990), metrics=c('centroid', 'nsCentroid', 'ewCentroid', 'nsQuants', 'summary'), quants=c(0.05, 0.95), onlyInSharedCells=FALSE, cores=2)
+
+	# bvSharedCells30yr <- bioticVelocity(studyRegion, times=seq(-21000, 0, by=30), atTimes=seq(-21000, 0, by=30), metrics=c('centroid', 'nsCentroid', 'ewCentroid', 'nsQuants', 'summary'), quants=c(0.05, 0.95), onlyInSharedCells=TRUE, cores=1)
+	# bvAllCells30yr <- bioticVelocity(studyRegion, times=seq(-21000, 0, by=30), atTimes=seq(-21000, 0, by=30), metrics=c('centroid', 'nsCentroid', 'ewCentroid', 'nsQuants', 'summary'), quants=c(0.05, 0.95), onlyInSharedCells=FALSE, cores=1)
 
 	# # save
 	# dirCreate('./biotic_velocity_of_land')
-	# write.csv(bvSharedCells './biotic_velocity_of_land/biotic_velocity_of_land_with_lakes_shared_cells_only.csv', row.names=FALSE)
-	# write.csv(bvAllCells './biotic_velocity_of_land/biotic_velocity_of_land_with_lakes_all_cells_only.csv', row.names=FALSE)
+	# write.csv(bvSharedCells990yr, './biotic_velocity_of_land/biotic_velocity_of_land_with_lakes_shared_cells_only_990yr.csv', row.names=FALSE)
+	# write.csv(bvAllCells990yr, './biotic_velocity_of_land/biotic_velocity_of_land_with_lakes_all_cells_only_990yr.csv', row.names=FALSE)
 
-	# ### plot
-	# midTimes <- bvSharedCells$timeTo + 990 / 2
+	# write.csv(bvSharedCells30yr, './biotic_velocity_of_land/biotic_velocity_of_land_with_lakes_shared_cells_only_30yr.csv', row.names=FALSE)
+	# write.csv(bvAllCells30yr, './biotic_velocity_of_land/biotic_velocity_of_land_with_lakes_all_cells_only_30yr.csv', row.names=FALSE)
 
-	# # centroid
-	# png('./biotic_velocity_of_land/biotic_velocity_of_land_with_lakes_centroid.png', width=1200, height=800)
+	# ### plot 990-yr intervals
 
-		# maxVel <- max(bvSharedCells$centroidVelocity, bvAllCells$centroidVelocity)
+		# midTimes <- bvSharedCells990yr$timeTo + 990 / 2
 
-		# par(cex.lab=1.6, cex.axis=1.4, cex.main=2)
-		# plot(midTimes, bvSharedCells$centroidVelocity, type='line', lwd=2, lty='dotted', col='blue', xlab='YBP', ylab='Velocity (m / yr)', ylim=c(0, maxVel), main='Centroid velocity of land')
-		# lines(midTimes, bvAllCells$centroidVelocity, lwd=2, lty='solid')
-		# legend('topright', inset=0.01, legend=c('all cells', 'shared cells'), col=c('black', 'blue'), lty=c('solid', 'dotted'), lwd=2, cex=1.4)
-	# dev.off()
+		# # centroid
+		# png('./biotic_velocity_of_land/biotic_velocity_of_land_with_lakes_centroid_990yr.png', width=1200, height=800)
+
+			# maxVel <- max(bvSharedCells990yr$centroidVelocity, bvAllCells990yr$centroidVelocity)
+
+			# par(cex.lab=1.6, cex.axis=1.4, cex.main=2)
+			# plot(midTimes, bvSharedCells990yr$centroidVelocity, type='line', lwd=2, lty='dotted', col='blue', xlab='YBP', ylab='Velocity (m / yr)', ylim=c(0, maxVel), main='Centroid velocity of land')
+			# lines(midTimes, bvAllCells990yr$centroidVelocity, lwd=2, lty='solid')
+			# legend('topright', inset=0.01, legend=c('all cells', 'shared cells'), col=c('black', 'blue'), lty=c('solid', 'dotted'), lwd=2, cex=1.4)
+		# dev.off()
+		
+		# # northern 95th quantile
+		# png('./biotic_velocity_of_land/biotic_velocity_of_land_with_lakes_95th_quantile_990yr.png', width=1200, height=800)
+
+			# minVel <- min(bvSharedCells990yr$nsQuantVelocity_quant0p95, bvAllCells990yr$nsQuantVelocity_quant0p95)
+			# maxVel <- max(bvSharedCells990yr$nsQuantVelocity_quant0p95, bvAllCells990yr$nsQuantVelocity_quant0p95)
+
+			# par(cex.lab=1.6, cex.axis=1.4, cex.main=2)
+			# plot(midTimes, bvSharedCells990yr$nsQuantVelocity_quant0p95, type='line', lwd=2, lty='dotted', col='blue', xlab='YBP', ylab='Velocity (m / yr)', ylim=c(minVel, maxVel), main='Velocity of 95th quantile of land (northern "range" limit)')
+			# lines(midTimes, bvAllCells990yr$nsQuantVelocity_quant0p95, lwd=2, lty='solid')
+			# legend('topright', inset=0.01, legend=c('all cells', 'shared cells'), col=c('black', 'blue'), lty=c('solid', 'dotted'), lwd=2, cex=1.4)
+		# dev.off()
+		
+		# # southern 5th quantile
+		# png('./biotic_velocity_of_land/biotic_velocity_of_land_with_lakes_5th_quantile_990yr.png', width=1200, height=800)
+
+			# minVel <- min(bvSharedCells990yr$nsQuantVelocity_quant0p05, bvAllCells990yr$nsQuantVelocity_quant0p05)
+			# maxVel <- max(bvSharedCells990yr$nsQuantVelocity_quant0p05, bvAllCells990yr$nsQuantVelocity_quant0p05)
+
+			# par(cex.lab=1.6, cex.axis=1.4, cex.main=2)
+			# plot(midTimes, bvSharedCells990yr$nsQuantVelocity_quant0p05, type='line', lwd=2, lty='dotted', col='blue', xlab='YBP', ylab='Velocity (m / yr)', ylim=c(minVel, maxVel), main='Velocity of 5th quantile of land (southern "range" limit)')
+			# lines(midTimes, bvAllCells990yr$nsQuantVelocity_quant0p05, lwd=2, lty='solid')
+			# legend('topright', inset=0.01, legend=c('all cells', 'shared cells'), col=c('black', 'blue'), lty=c('solid', 'dotted'), lwd=2, cex=1.4)
+		# dev.off()
 	
-	# # northern 95th quantile
-	# png('./biotic_velocity_of_land/biotic_velocity_of_land_with_lakes_95th_quantile.png', width=1200, height=800)
+	# ### plot 30-yr intervals
 
-		# minVel <- min(bvSharedCells$nsQuantVelocity_quant0p95, bvAllCells$nsQuantVelocity_quant0p95)
-		# maxVel <- max(bvSharedCells$nsQuantVelocity_quant0p95, bvAllCells$nsQuantVelocity_quant0p95)
+		# midTimes <- bvSharedCells30yr$timeTo + 30 / 2
 
-		# par(cex.lab=1.6, cex.axis=1.4, cex.main=2)
-		# plot(midTimes, bvSharedCells$nsQuantVelocity_quant0p95, type='line', lwd=2, lty='dotted', col='blue', xlab='YBP', ylab='Velocity (m / yr)', ylim=c(minVel, maxVel), main='Velocity of 95th quantile of land (northern "range" limit)')
-		# lines(midTimes, bvAllCells$nsQuantVelocity_quant0p95, lwd=2, lty='solid')
-		# legend('topright', inset=0.01, legend=c('all cells', 'shared cells'), col=c('black', 'blue'), lty=c('solid', 'dotted'), lwd=2, cex=1.4)
-	# dev.off()
+		# # centroid
+		# png('./biotic_velocity_of_land/biotic_velocity_of_land_with_lakes_centroid_30yr.png', width=1200, height=800)
+
+			# maxVel <- max(bvSharedCells30yr$centroidVelocity, bvAllCells30yr$centroidVelocity)
+
+			# par(cex.lab=1.6, cex.axis=1.4, cex.main=2)
+			# plot(midTimes, bvSharedCells30yr$centroidVelocity, type='line', lwd=2, lty='dotted', col='blue', xlab='YBP', ylab='Velocity (m / yr)', ylim=c(0, maxVel), main='Centroid velocity of land')
+			# lines(midTimes, bvAllCells30yr$centroidVelocity, lwd=2, lty='solid')
+			# legend('topright', inset=0.01, legend=c('all cells', 'shared cells'), col=c('black', 'blue'), lty=c('solid', 'dotted'), lwd=2, cex=1.4)
+			
+			# for (i in seq(0, 21000, by=500)) abline(v=i, col='gray', lty='dotted')
+			
+		# dev.off()
+		
+		# # northern 95th quantile
+		# png('./biotic_velocity_of_land/biotic_velocity_of_land_with_lakes_95th_quantile_30yr.png', width=1200, height=800)
+
+			# minVel <- min(bvSharedCells30yr$nsQuantVelocity_quant0p95, bvAllCells30yr$nsQuantVelocity_quant0p95)
+			# maxVel <- max(bvSharedCells30yr$nsQuantVelocity_quant0p95, bvAllCells30yr$nsQuantVelocity_quant0p95)
+
+			# par(cex.lab=1.6, cex.axis=1.4, cex.main=2)
+			# plot(midTimes, bvSharedCells30yr$nsQuantVelocity_quant0p95, type='line', lwd=2, lty='dotted', col='blue', xlab='YBP', ylab='Velocity (m / yr)', ylim=c(minVel, maxVel), main='Velocity of 95th quantile of land (northern "range" limit)')
+			# lines(midTimes, bvAllCells30yr$nsQuantVelocity_quant0p95, lwd=2, lty='solid')
+			# legend('topright', inset=0.01, legend=c('all cells', 'shared cells'), col=c('black', 'blue'), lty=c('solid', 'dotted'), lwd=2, cex=1.4)
+			
+			# for (i in seq(0, 21000, by=500)) abline(v=i, col='gray', lty='dotted')
+			
+		# dev.off()
+		
+		# # southern 5th quantile
+		# png('./biotic_velocity_of_land/biotic_velocity_of_land_with_lakes_5th_quantile_30yr.png', width=1200, height=800)
+
+			# minVel <- min(bvSharedCells30yr$nsQuantVelocity_quant0p05, bvAllCells30yr$nsQuantVelocity_quant0p05)
+			# maxVel <- max(bvSharedCells30yr$nsQuantVelocity_quant0p05, bvAllCells30yr$nsQuantVelocity_quant0p05)
+
+			# par(cex.lab=1.6, cex.axis=1.4, cex.main=2)
+			# plot(midTimes, bvSharedCells30yr$nsQuantVelocity_quant0p05, type='line', lwd=2, lty='dotted', col='blue', xlab='YBP', ylab='Velocity (m / yr)', ylim=c(minVel, maxVel), main='Velocity of 5th quantile of land (southern "range" limit)')
+			# lines(midTimes, bvAllCells30yr$nsQuantVelocity_quant0p05, lwd=2, lty='solid')
+			# legend('topright', inset=0.01, legend=c('all cells', 'shared cells'), col=c('black', 'blue'), lty=c('solid', 'dotted'), lwd=2, cex=1.4)
+			
+			# for (i in seq(0, 21000, by=500)) abline(v=i, col='gray', lty='dotted')
+			
+		# dev.off()
 	
-	# # southern 5th quantile
-	# png('./biotic_velocity_of_land/biotic_velocity_of_land_with_lakes_5th_quantile.png', width=1200, height=800)
 
-		# minVel <- min(bvSharedCells$nsQuantVelocity_quant0p05, bvAllCells$nsQuantVelocity_quant0p05)
-		# maxVel <- max(bvSharedCells$nsQuantVelocity_quant0p05, bvAllCells$nsQuantVelocity_quant0p05)
-
-		# par(cex.lab=1.6, cex.axis=1.4, cex.main=2)
-		# plot(midTimes, bvSharedCells$nsQuantVelocity_quant0p05, type='line', lwd=2, lty='dotted', col='blue', xlab='YBP', ylab='Velocity (m / yr)', ylim=c(minVel, maxVel), main='Velocity of 5th quantile of land (southern "range" limit)')
-		# lines(midTimes, bvAllCells$nsQuantVelocity_quant0p05, lwd=2, lty='solid')
-		# legend('topright', inset=0.01, legend=c('all cells', 'shared cells'), col=c('black', 'blue'), lty=c('solid', 'dotted'), lwd=2, cex=1.4)
-	# dev.off()
-	
 #################################	
 say('DONE!!!', deco='%', level=1)
 #################################

@@ -6,8 +6,9 @@ The code:
 * Expands this region using a manually-drawn polygon to account for shifting shorelines.
 * Generates one raster representing exposed land mass for every 30 yr from 21 Kybp to 0 ybp.
 * "Burns" values representing proportional ice cover in cells so they have either 0 (no ice), 1 (100% ice), some value between 0 and 1 (proportion of cell covered in ice), or `NA` (not land or outside study region).
+* Calculates biotic velocity of land, as if it were a species, for comparison to real biotic velocities.
 
 The study region is represented by a raster stack in the folder `!study_region_masks`. This folder contains stack with/out the Great Lakes masked out (as `NA`s). There is one raster in each stack per 30 yr time period, with the first ("uppermost") raster representing land cover and ice 21 Kybp, and the last (number 701) present-day land cover.
 
 Adam B. Smith
-Last updated 2020-04-27
+Last updated 2021-03-15
